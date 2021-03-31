@@ -7,10 +7,9 @@ namespace SharpKafka.Message
                   Inherited = true)]
     public class TopicAttribute : Attribute
     {
-        public TopicAttribute(string name, Type keyType)
+        public TopicAttribute(string name)
         {
             Name = name;
-            KeyType = keyType;
         }
 
         public string Name { get; set; }

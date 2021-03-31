@@ -37,7 +37,7 @@ namespace SharpKafka.Extentions
                 var messageTypes = allTypes
                     .Where(t => t.IsClass
                         && !t.IsAbstract
-                        && t.AsType().IsAssignableFrom(typeof(IMessage)));
+                        && t.AsType().IsAssignableTo(typeof(IMessage)));
 
                 var producerInterfaceType = typeof(IKafkaDependentProducer<,>);
                 var producerClassType = typeof(KafkaDependentProducer<,>);
@@ -61,7 +61,7 @@ namespace SharpKafka.Extentions
                 var messageHandlerTypes = allTypes
                 .Where(t => t.IsClass
                     && !t.IsAbstract
-                    && t.AsType().IsAssignableFrom(typeof(IMessage)));
+                    && t.AsType().IsAssignableTo(typeof(IMessageHandler)));
 
                 var consumerInterfaceType = typeof(IKafkaDependentProducer<,>);
                 var consumerClassType = typeof(KafkaDependentProducer<,>);
@@ -75,7 +75,7 @@ namespace SharpKafka.Extentions
                         continue;
                     }
                     var keyType = topic.KeyType ?? typeof(Null);
-                    var messageType = item.GetInterfaceMap(typeof(IMessageHandler<,>)).InterfaceType.GetGenericArguments()[1];
+                    var messageType = item.ImplementedInterfaces.First(i=>i.IsGenericType && i.IsAssignableTo(typeof(IMessageHandler))).GetGenericArguments()[1];
                     var consumerInterface = Type.MakeGenericSignatureType(consumerInterfaceType, keyType, messageType);
                     var consumerClass = Type.MakeGenericSignatureType(consumerClassType, keyType, item);
 

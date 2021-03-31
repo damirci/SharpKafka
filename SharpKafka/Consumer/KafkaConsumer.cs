@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace SharpKafka.Consumer
 {
-    public class KafkaConsumer<TKey, TValue> : IDisposable, IKafkaConsumer
+    public class KafkaConsumer<TKey, TValue> : IDisposable, IKafkaConsumer<TKey, TValue>
     {
         private readonly IConsumer<TKey, TValue> _consumer;
         private readonly ILogger<KafkaConsumer<TKey, TValue>> _logger;

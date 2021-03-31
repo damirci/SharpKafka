@@ -3,6 +3,7 @@
 namespace UnitTests.Dummies
 {
     [Topic("test")]
+
     public class TestMessage : IMessage
     {
     }

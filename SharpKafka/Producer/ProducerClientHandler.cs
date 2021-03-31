@@ -22,9 +22,9 @@ namespace SharpKafka.Producer
     {
         private readonly IProducer<byte[], byte[]> producer;
 
-        public ProducerClientHandler(IOptions<KafkaConfig> option)
+        public ProducerClientHandler(KafkaConfig option)
         {
-            var config = option.Value.Producer;
+            var config = option.Producer;
             producer = new ProducerBuilder<byte[], byte[]>(config).Build();
         }
 

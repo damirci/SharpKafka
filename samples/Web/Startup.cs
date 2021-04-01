@@ -29,12 +29,9 @@ namespace Web
             var kafkaConfig = Configuration.GetSection("Kafka").Get<KafkaConfig>();
             services.AddSharpKafka(kafkaConfig);
 
-
             var kafkaSchemaRegistryConfig = Configuration.GetSection("Kafka:schema").Get<SchemaRegistryConfig>();
             var chachedSchemaRegistry = new CachedSchemaRegistryClient(kafkaSchemaRegistryConfig);
-
             services.AddTransient((sp) => new JsonSerializer<DummyMessage>(chachedSchemaRegistry).AsSyncOverAsync());
-
 
             services.AddControllers();
             services.AddSwaggerGen(c =>

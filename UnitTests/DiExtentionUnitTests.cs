@@ -4,10 +4,7 @@ using Confluent.SchemaRegistry;
 using Confluent.SchemaRegistry.Serdes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Moq;
 using SharpKafka;
-using SharpKafka.Consumer;
 using SharpKafka.Extentions;
 using SharpKafka.Producer;
 using SharpKafka.Workers;
@@ -23,15 +20,14 @@ namespace UnitTests
         {
             //arrange
             var services = new ServiceCollection();
-            services.AddTransient((sp) => Serializers.Null);
             var schemaRegistry = new CachedSchemaRegistryClient(new SchemaRegistryConfig
             {
                 Url = "localhost"
             });
             services.AddTransient((sp) => new JsonSerializer<TestMessage>(schemaRegistry).AsSyncOverAsync());
-
+            
             //act
-            services.AddSharpKafka(new SharpKafka.KafkaConfig { Producer = new ProducerConfig() { BootstrapServers = "localhost" } }, typeof(DiExtentionUnitTests));
+            services.AddSharpKafka(new KafkaConfig { Producer = new ProducerConfig() { BootstrapServers = "localhost" } }, typeof(DiExtentionUnitTests));
             var provider = services.BuildServiceProvider();
             var producer = provider.GetRequiredService<IKafkaDependentProducer<Null, TestMessage>>();
 
@@ -55,7 +51,7 @@ namespace UnitTests
         }
 
         [Fact]
-        public void Should_Inject_Consumer_Worker_for_Message()
+        public void Should_Inject_Consumer_Worker_for_MessageHandler()
         {
             //arrange
             var services = new ServiceCollection();
@@ -73,7 +69,7 @@ namespace UnitTests
         }
 
         [Fact]
-        public void Should_Inject_Object_Consumer_Worker_for_Message()
+        public void Should_Inject_Object_Consumer_Worker_for_MessageHandler()
         {
             //arrange
             var services = new ServiceCollection();

@@ -1,10 +1,7 @@
 ﻿using Confluent.Kafka;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using SharpKafka.Consumer;
-using SharpKafka.Message;
 using SharpKafka.Producer;
 using SharpKafka.Workers;
 using System;
@@ -68,7 +65,6 @@ namespace SharpKafka.Extentions
                     var iMessageHandlerType = messageHandlerType.ImplementedInterfaces.First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IMessageHandler<,>));
                     services.AddTransient(iMessageHandlerType, messageHandlerType);
 
-                    //var iConsumerWorkerType = typeof(IConsumerWorker<,>).MakeGenericType(iMessageHandlerType.GetGenericArguments());
                     var consumerWorkerType = typeof(ConsumerWorker<,>).MakeGenericType(iMessageHandlerType.GetGenericArguments());
 
                     services.AddTransient(typeof(IHostedService),consumerWorkerType);

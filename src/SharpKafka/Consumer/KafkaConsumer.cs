@@ -1,5 +1,6 @@
 ﻿using Confluent.Kafka;
 using Microsoft.Extensions.Logging;
+using SharpKafka.Message;
 using System;
 using System.Threading;
 

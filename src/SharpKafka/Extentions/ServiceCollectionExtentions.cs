@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SharpKafka.Consumer;
+using SharpKafka.Message;
 using SharpKafka.Producer;
 using SharpKafka.Workers;
 using System;

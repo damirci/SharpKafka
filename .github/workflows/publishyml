@@ -22,4 +22,5 @@ jobs:
       uses: rohith/publish-nuget@v2
       with:
         PROJECT_FILE_PATH: src\SharpKafka\SharpKafka.csproj
+        VERSION_REGEX: <Version>(.*)<\/Version>
         NUGET_KEY: ${{secrets.NUGET_API_KEY}}

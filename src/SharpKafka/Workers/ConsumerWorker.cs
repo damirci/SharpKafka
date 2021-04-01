@@ -24,7 +24,7 @@ namespace SharpKafka.Workers
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _consumer.StartConsumerLoop(_topic, stoppingToken);
+            new Thread(() => _consumer.StartConsumerLoop(_topic, stoppingToken)).Start();
             return Task.CompletedTask;
         }
 

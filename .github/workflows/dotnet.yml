@@ -1,0 +1,25 @@
+name: publish SharpKafka to nuget
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+      # Publish
+    - name: publish on version change
+      uses: rohith/publish-nuget@v2
+      with:
+        PROJECT_FILE_PATH: src\SharpKafka\SharpKafka.csproj
+        NUGET_KEY: ${{secrets.NUGET_API_KEY}}

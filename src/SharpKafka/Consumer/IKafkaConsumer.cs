@@ -5,6 +5,6 @@ namespace SharpKafka.Consumer
     public interface IKafkaConsumer<TKey, TValue>
     {
         void Dispose();
-        void StartConsumerLoop(string topic, CancellationToken cancellationToken);
+        void StartConsumerLoop(CancellationToken cancellationToken);
     }
 }

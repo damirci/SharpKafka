@@ -9,7 +9,6 @@ namespace SharpKafka.Workers
 {
     public class ConsumerWorker<TKey, TValue> : BackgroundService, IConsumerWorker<TKey, TValue>
     {
-        private readonly string _topic;
         private readonly IMessageHandler<TKey, TValue> _messageHandler;
         private readonly IKafkaConsumer<TKey, TValue> _consumer;
 
@@ -17,14 +16,11 @@ namespace SharpKafka.Workers
         {
             _messageHandler = messageHandler;
             _consumer = consumer;
-
-            var topic = _messageHandler.GetType().GetCustomAttribute<TopicAttribute>();
-            _topic = topic.Name;
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            new Thread(() => _consumer.StartConsumerLoop(_topic, stoppingToken)).Start();
+            new Thread(() => _consumer.StartConsumerLoop(stoppingToken)).Start();
             return Task.CompletedTask;
         }
 

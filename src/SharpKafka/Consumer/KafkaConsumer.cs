@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using SharpKafka.Message;
 using System;
+using System.Reflection;
 using System.Threading;
 
 namespace SharpKafka.Consumer
@@ -10,7 +11,8 @@ namespace SharpKafka.Consumer
     {
         private readonly IConsumer<TKey, TValue> _consumer;
         private readonly ILogger<KafkaConsumer<TKey, TValue>> _logger;
-        private readonly IMessageHandler<TKey, TValue> messageHandler;
+        private readonly IMessageHandler<TKey, TValue> _messageHandler;
+        private readonly string _topic;
 
         public KafkaConsumer(KafkaConfig option,
             ILogger<KafkaConsumer<TKey, TValue>> logger,
@@ -25,12 +27,14 @@ namespace SharpKafka.Consumer
                 .SetValueDeserializer(valueDersializer)
                 .Build();
             _logger = logger;
-            this.messageHandler = messageHandler;
+            _messageHandler = messageHandler;
+            var topic = _messageHandler.GetType().GetCustomAttribute<TopicAttribute>();
+            _topic = topic.Name;
         }
 
-        public void StartConsumerLoop(string topic, CancellationToken cancellationToken)
+        public void StartConsumerLoop(CancellationToken cancellationToken)
         {
-            _consumer.Subscribe(topic);
+            _consumer.Subscribe(_topic);
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -44,7 +48,7 @@ namespace SharpKafka.Consumer
                         continue;
                     }
                     var message = consumeResult.Message;
-                    messageHandler.Handle(message);
+                    _messageHandler.Handle(message);
 
                 }
                 catch (OperationCanceledException)

@@ -9,12 +9,12 @@ namespace Web.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class DateTimeController : ControllerBase
+    public class SimpleStringController : ControllerBase
     {
-        private readonly ILogger<DateTimeController> _logger;
+        private readonly ILogger<SimpleStringController> _logger;
         private readonly IKafkaDependentProducer<Null, string> _kafkaDependentProducer;
 
-        public DateTimeController(ILogger<DateTimeController> logger, IKafkaDependentProducer<Null,string> kafkaDependentProducer)
+        public SimpleStringController(ILogger<SimpleStringController> logger, IKafkaDependentProducer<Null,string> kafkaDependentProducer)
         {
             _logger = logger;
             _kafkaDependentProducer = kafkaDependentProducer;

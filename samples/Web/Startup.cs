@@ -1,3 +1,6 @@
+using Confluent.Kafka.SyncOverAsync;
+using Confluent.SchemaRegistry;
+using Confluent.SchemaRegistry.Serdes;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -6,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using SharpKafka;
 using SharpKafka.Extentions;
+using Web.Messages;
 
 namespace Web
 {
@@ -24,6 +28,12 @@ namespace Web
 
             var kafkaConfig = Configuration.GetSection("Kafka").Get<KafkaConfig>();
             services.AddSharpKafka(kafkaConfig);
+
+
+            var kafkaSchemaRegistryConfig = Configuration.GetSection("Kafka:schema").Get<SchemaRegistryConfig>();
+            var chachedSchemaRegistry = new CachedSchemaRegistryClient(kafkaSchemaRegistryConfig);
+
+            services.AddTransient((sp) => new JsonSerializer<DummyMessage>(chachedSchemaRegistry).AsSyncOverAsync());
 
 
             services.AddControllers();

@@ -13,5 +13,9 @@ namespace SharpKafka.Message
         /// sample topic name: topic-name__consumer-group__postfix
         /// </summary>
         public string TopicPostfix { get; set; }
+        /// <summary>
+        /// sample topic name: topic-name__consumer-group__postfix
+        /// </summary>
+        public string DlqPostfix { get; set; }
     }
 }

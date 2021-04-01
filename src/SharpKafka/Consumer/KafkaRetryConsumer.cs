@@ -1,40 +1,43 @@
 ﻿using Confluent.Kafka;
 using Microsoft.Extensions.Logging;
 using SharpKafka.Message;
+using SharpKafka.Producer;
 using System;
 using System.Reflection;
 using System.Threading;
 
 namespace SharpKafka.Consumer
 {
-    public class KafkaConsumer<TKey, TValue> : IDisposable, IKafkaConsumer<TKey, TValue>
+    public class KafkaRetryConsumer<TKey, TValue> : KafkaConsumer<TKey, TValue>, IKafkaRetryConsumer<TKey, TValue>
     {
-        protected readonly IConsumer<TKey, TValue> _consumer;
-        protected readonly ILogger<KafkaConsumer<TKey, TValue>> _logger;
-        protected readonly IMessageHandler<TKey, TValue> _messageHandler;
-        protected readonly string _topic;
+        private readonly IKafkaDependentProducer<TKey, TValue> _producer;
+        public readonly ConsumerConfig _config;
+        private readonly int _maxRetry;
+        private readonly long _retryWait;
+        private readonly string _dlqTopic;
+        private readonly string _retryTopic;
 
-        public KafkaConsumer(KafkaConfig option,
+        public KafkaRetryConsumer(KafkaConfig option,
             ILogger<KafkaConsumer<TKey, TValue>> logger,
             IMessageHandler<TKey, TValue> messageHandler,
+            IKafkaDependentProducer<TKey, TValue> producer,
             IDeserializer<TKey> keyDersializer,
-            IDeserializer<TValue> valueDersializer
-)
+            IDeserializer<TValue> valueDersializer) : base(option, logger, messageHandler, keyDersializer, valueDersializer)
         {
-            var config = option.Consumer;
-            _consumer = new ConsumerBuilder<TKey, TValue>(config)
-                .SetKeyDeserializer(keyDersializer)
-                .SetValueDeserializer(valueDersializer)
-                .Build();
-            _logger = logger;
-            _messageHandler = messageHandler;
-            var topic = _messageHandler.GetType().GetCustomAttribute<TopicAttribute>();
-            _topic = topic.Name;
+            _config = option.Consumer;
+            _producer = producer;
+            var retry = _messageHandler.GetType().GetCustomAttribute<RetryAttribute>();
+
+            _maxRetry = retry.MaxRetry;
+            _retryWait = retry.Wait;
+            _dlqTopic = $"{_topic}__{option.Consumer.GroupId}__{retry.DlqPostfix}";
+            _retryTopic = $"{_topic}__{option.Consumer.GroupId}__{retry.TopicPostfix}";
         }
 
-        public virtual void StartConsumerLoop(CancellationToken cancellationToken)
+        public override void StartConsumerLoop(CancellationToken cancellationToken)
         {
             _consumer.Subscribe(_topic);
+            _consumer.Subscribe(_retryTopic);
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -74,11 +77,11 @@ namespace SharpKafka.Consumer
             }
         }
 
-        public virtual void Dispose()
+        public override void Dispose()
         {
             GC.SuppressFinalize(this);
-            _consumer.Close(); // Commit offsets and leave the group cleanly.
-            _consumer.Dispose();
+            _producer.Flush(TimeSpan.FromSeconds(10));
+            base.Dispose();
         }
     }
 }

@@ -24,8 +24,27 @@ namespace SharpKafka.Extentions
 
         private static IServiceCollection SharpKafkaClasses(IServiceCollection services, KafkaConfig config, IEnumerable<Assembly> assembliesToScan)
         {
+            services.AddTransient((sp) => Deserializers.Null);
+            services.AddTransient((sp) => Deserializers.ByteArray);
+            services.AddTransient((sp) => Deserializers.Double);
+            services.AddTransient((sp) => Deserializers.Ignore);
+            services.AddTransient((sp) => Deserializers.Int32);
+            services.AddTransient((sp) => Deserializers.Int64);
+            services.AddTransient((sp) => Deserializers.Single);
+            services.AddTransient((sp) => Deserializers.Utf8);
+
+            services.AddTransient((sp) => Serializers.Null);
+            services.AddTransient((sp) => Serializers.ByteArray);
+            services.AddTransient((sp) => Serializers.Double);
+            services.AddTransient((sp) => Serializers.Int32);
+            services.AddTransient((sp) => Serializers.Int64);
+            services.AddTransient((sp) => Serializers.Single);
+            services.AddTransient((sp) => Serializers.Utf8);
+
             services.AddSingleton(config);
             services.AddSingleton<ProducerClientHandler>();
+            services.AddSingleton(typeof(IKafkaDependentProducer<,>), typeof(KafkaDependentProducer<,>));
+            services.AddTransient(typeof(IKafkaConsumer<,>), typeof(KafkaConsumer<,>));
 
             var assembliesToScanArray = assembliesToScan as Assembly[] ?? assembliesToScan?.ToArray();
 
@@ -37,61 +56,23 @@ namespace SharpKafka.Extentions
                     .SelectMany(a => a.DefinedTypes)
                     .ToArray();
 
-                var messageTypes = allTypes
-                    .Where(t => t.IsClass
-                        && !t.IsAbstract
-                        && t.AsType().IsAssignableTo(typeof(IMessage)));
-
-                var producerInterfaceType = typeof(IKafkaDependentProducer<,>);
-                var producerClassType = typeof(KafkaDependentProducer<,>);
-
-                //foreach (var item in messageTypes)
-                //{
-                //    var topic = item.GetCustomAttribute<TopicAttribute>();
-                //    if (topic == null)
-                //    {
-                //        continue;
-                //    }
-                //    var keyType = topic.KeyType ?? typeof(Null);
-
-                //    var producerInterface = Type.MakeGenericSignatureType(producerInterfaceType, keyType, item);
-                //    var producerClass = Type.MakeGenericSignatureType(producerClassType, keyType, item);
-
-                //    services.AddSingleton(producerInterface, producerClass);
-                //}
-
-                services.AddScoped(typeof(IKafkaDependentProducer<,>), typeof(KafkaDependentProducer<,>));
+                var messageHandlerTypes = allTypes
+                .Where(t => t.IsClass
+                    && !t.IsInterface
+                    && !t.IsAbstract
+                    && t.ImplementedInterfaces.Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IMessageHandler<,>)));
 
 
-                //var messageHandlerTypes = allTypes
-                //.Where(t => t.IsClass
-                //    && !t.IsAbstract
-                //    && t.AsType().IsAssignableTo(typeof(IMessageHandler)));
+                foreach (var messageHandlerType in messageHandlerTypes)
+                {
+                    var iMessageHandlerType = messageHandlerType.ImplementedInterfaces.First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IMessageHandler<,>));
+                    services.AddTransient(iMessageHandlerType, messageHandlerType);
 
-                //var consumerInterfaceType = typeof(IKafkaConsumer<,>);
-                //var consumerClassType = typeof(KafkaConsumer<,>);
-                //var consumerWorkerType = typeof(ConsumerWorker<,>);
+                    var iConsumerWorkerType = typeof(IConsumerWorker<,>).MakeGenericType(iMessageHandlerType.GetGenericArguments());
+                    var consumerWorkerType = typeof(ConsumerWorker<,>).MakeGenericType(iMessageHandlerType.GetGenericArguments());
 
-                //foreach (var item in messageHandlerTypes)
-                //{
-                //    services.AddTransient(item);
-                //    var topic = item.GetCustomAttribute<TopicAttribute>();
-                //    if (topic == null)
-                //    {
-                //        continue;
-                //    }
-                //    var keyType = topic.KeyType ?? typeof(Null);
-                //    var messageType = item.ImplementedInterfaces.First(i => i.IsGenericType && i.IsAssignableTo(typeof(IMessageHandler))).GetGenericArguments()[1];
-                //    var consumerInterface = Type.MakeGenericSignatureType(consumerInterfaceType, keyType, messageType);
-                //    var consumerClass = Type.MakeGenericSignatureType(consumerClassType, keyType, item);
-
-                //    var consumerWorker = Type.MakeGenericSignatureType(consumerWorkerType, keyType, item);
-
-                //    services.AddTransient(consumerInterfaceType, consumerClassType);
-                //    services.AddSingleton(consumerWorker);
-                //}
-
-
+                    services.AddTransient(iConsumerWorkerType,consumerWorkerType);
+                }
             }
 
             return services;

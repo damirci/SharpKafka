@@ -12,12 +12,18 @@ namespace SharpKafka.Consumer
         private readonly ILogger<KafkaConsumer<TKey, TValue>> _logger;
         private readonly IMessageHandler<TKey, TValue> messageHandler;
 
-        public KafkaConsumer(IOptions<KafkaConfig> option,
-            ILogger<KafkaConsumer<TKey, TValue>> logger, IMessageHandler<TKey, TValue> messageHandler
+        public KafkaConsumer(KafkaConfig option,
+            ILogger<KafkaConsumer<TKey, TValue>> logger,
+            IMessageHandler<TKey, TValue> messageHandler,
+            IDeserializer<TKey> keyDersializer,
+            IDeserializer<TValue> valueDersializer
 )
         {
-            var config = option.Value.Consumer;
-            _consumer = new ConsumerBuilder<TKey, TValue>(config).Build();
+            var config = option.Consumer;
+            _consumer = new ConsumerBuilder<TKey, TValue>(config)
+                .SetKeyDeserializer(keyDersializer)
+                .SetValueDeserializer(valueDersializer)
+                .Build();
             _logger = logger;
             this.messageHandler = messageHandler;
         }

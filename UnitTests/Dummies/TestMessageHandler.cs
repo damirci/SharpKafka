@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 namespace UnitTests.Dummies
 {
     [Topic("test")]
-    public class TestMessageHandler : IMessageHandler<Null, TestMessage>
+    public class TestMessageHandler : IMessageHandler<Null, string>
     {
-        public bool Handle(Message<Null, TestMessage> message)
+        public bool Handle(Message<Null, string> message)
         {
             throw new NotImplementedException();
         }

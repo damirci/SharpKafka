@@ -1,13 +1,10 @@
 ﻿using Confluent.Kafka;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Confluent.SchemaRegistry;
-using Confluent.SchemaRegistry.Serdes;
-using Microsoft.Hadoop.Avro;
+
 
 namespace SharpKafka.Producer
 {
@@ -16,10 +13,11 @@ namespace SharpKafka.Producer
     {
         private readonly IProducer<K, V> handler;
 
-        public KafkaDependentProducer(ProducerClientHandler handle)
+        public KafkaDependentProducer(ProducerClientHandler handle, ISerializer<K> keySerializer, ISerializer<V> valueSerializer)
         {
             handler = new DependentProducerBuilder<K, V>(handle.Handle)
-                .SetValueSerializer(new JsonSerializer<V>().SerializeAsync())
+                .SetKeySerializer(keySerializer)
+                .SetValueSerializer(valueSerializer)
                 .Build();
         }
 

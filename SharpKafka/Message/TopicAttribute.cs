@@ -13,6 +13,5 @@ namespace SharpKafka.Message
         }
 
         public string Name { get; set; }
-        public Type KeyType { get; set; }
     }
 }

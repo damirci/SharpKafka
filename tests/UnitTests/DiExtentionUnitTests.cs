@@ -56,6 +56,7 @@ namespace UnitTests
         {
             //arrange
             var services = new ServiceCollection();
+            services.AddTransient((sp) => new JsonDeserializer<TestMessage>().AsSyncOverAsync());
             services.AddLogging();
             var expected = typeof(ConsumerWorker<Null, string>);
 

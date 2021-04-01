@@ -9,12 +9,10 @@ namespace SharpKafka.Workers
 {
     public class ConsumerWorker<TKey, TValue> : BackgroundService, IConsumerWorker<TKey, TValue>
     {
-        private readonly IMessageHandler<TKey, TValue> _messageHandler;
         private readonly IKafkaConsumer<TKey, TValue> _consumer;
 
-        public ConsumerWorker(IMessageHandler<TKey, TValue> messageHandler, IKafkaConsumer<TKey, TValue> consumer)
+        public ConsumerWorker(IKafkaConsumer<TKey, TValue> consumer)
         {
-            _messageHandler = messageHandler;
             _consumer = consumer;
         }
 

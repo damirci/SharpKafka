@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <UserSecretsId>dotnet-WorkerService-5B2819C7-F321-468C-8A7A-E91195CB5DFE</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Confluent.SchemaRegistry" Version="1.6.3" />
+    <PackageReference Include="Confluent.SchemaRegistry.Serdes.Json" Version="1.6.3" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\SharpKafka\SharpKafka.csproj" />
+  </ItemGroup>
+</Project>

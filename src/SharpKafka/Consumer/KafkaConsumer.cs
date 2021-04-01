@@ -48,7 +48,7 @@ namespace SharpKafka.Consumer
                         continue;
                     }
                     var message = consumeResult.Message;
-                    _messageHandler.Handle(message);
+                    _ = _messageHandler.Handle(message);
 
                 }
                 catch (OperationCanceledException)

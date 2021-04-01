@@ -3,6 +3,7 @@ using Confluent.Kafka.SyncOverAsync;
 using Confluent.SchemaRegistry;
 using Confluent.SchemaRegistry.Serdes;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using SharpKafka;
@@ -10,7 +11,6 @@ using SharpKafka.Consumer;
 using SharpKafka.Extentions;
 using SharpKafka.Producer;
 using SharpKafka.Workers;
-using System;
 using UnitTests.Dummies;
 using Xunit;
 
@@ -23,7 +23,7 @@ namespace UnitTests
         {
             //arrange
             var services = new ServiceCollection();
-            services.AddTransient((sp)=> Serializers.Null);
+            services.AddTransient((sp) => Serializers.Null);
             var schemaRegistry = new CachedSchemaRegistryClient(new SchemaRegistryConfig
             {
                 Url = "localhost"
@@ -31,7 +31,7 @@ namespace UnitTests
             services.AddTransient((sp) => new JsonSerializer<TestMessage>(schemaRegistry).AsSyncOverAsync());
 
             //act
-            services.AddSharpKafka(new SharpKafka.KafkaConfig { Producer = new ProducerConfig() { BootstrapServers= "localhost" } }, typeof(DiExtentionUnitTests));
+            services.AddSharpKafka(new SharpKafka.KafkaConfig { Producer = new ProducerConfig() { BootstrapServers = "localhost" } }, typeof(DiExtentionUnitTests));
             var provider = services.BuildServiceProvider();
             var producer = provider.GetRequiredService<IKafkaDependentProducer<Null, TestMessage>>();
 
@@ -59,16 +59,36 @@ namespace UnitTests
         {
             //arrange
             var services = new ServiceCollection();
-            //services.AddTransient((sp) => new JsonDeserializer<TestMessage>().AsSyncOverAsync());
-            services.AddScoped(sp=> new Mock<ILogger<ConsumerWorker<Null, string>>>().Object);
-            services.AddScoped(sp => new Mock<ILogger<KafkaConsumer<Null, string>>>().Object);
+            services.AddLogging();
+            var expected = typeof(ConsumerWorker<Null, string>);
+
             //act
-            services.AddSharpKafka(new KafkaConfig { Consumer = new ConsumerConfig() { BootstrapServers = "localhost" ,GroupId="test"} }, typeof(DiExtentionUnitTests));
+            services.AddSharpKafka(new KafkaConfig { Consumer = new ConsumerConfig() { BootstrapServers = "localhost", GroupId = "test" } }, typeof(DiExtentionUnitTests));
             var provider = services.BuildServiceProvider();
-            var worker = provider.GetRequiredService<IConsumerWorker<Null, string>>();
+            var hostedServices = provider.GetServices<IHostedService>();
 
             //assert
-            Assert.NotNull(worker);
+            Assert.NotEmpty(hostedServices);
+            Assert.Contains(hostedServices, t => t.GetType() == expected);
+        }
+
+        [Fact]
+        public void Should_Inject_Object_Consumer_Worker_for_Message()
+        {
+            //arrange
+            var services = new ServiceCollection();
+            services.AddTransient((sp) => new JsonDeserializer<TestMessage>().AsSyncOverAsync());
+            services.AddLogging();
+            var expected = typeof(ConsumerWorker<string, TestMessage>);
+
+            //act
+            services.AddSharpKafka(new KafkaConfig { Consumer = new ConsumerConfig() { BootstrapServers = "localhost", GroupId = "test" } }, typeof(DiExtentionUnitTests));
+            var provider = services.BuildServiceProvider();
+            var hostedServices = provider.GetServices<IHostedService>();
+
+            //assert
+            Assert.NotEmpty(hostedServices);
+            Assert.Contains(hostedServices, t => t.GetType() == expected);
         }
     }
 }

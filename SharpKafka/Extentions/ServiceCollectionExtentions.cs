@@ -68,10 +68,10 @@ namespace SharpKafka.Extentions
                     var iMessageHandlerType = messageHandlerType.ImplementedInterfaces.First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IMessageHandler<,>));
                     services.AddTransient(iMessageHandlerType, messageHandlerType);
 
-                    var iConsumerWorkerType = typeof(IConsumerWorker<,>).MakeGenericType(iMessageHandlerType.GetGenericArguments());
+                    //var iConsumerWorkerType = typeof(IConsumerWorker<,>).MakeGenericType(iMessageHandlerType.GetGenericArguments());
                     var consumerWorkerType = typeof(ConsumerWorker<,>).MakeGenericType(iMessageHandlerType.GetGenericArguments());
 
-                    services.AddTransient(iConsumerWorkerType,consumerWorkerType);
+                    services.AddTransient(typeof(IHostedService),consumerWorkerType);
                 }
             }
 

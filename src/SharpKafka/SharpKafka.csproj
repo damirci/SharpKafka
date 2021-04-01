@@ -1,7 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net5.0;net461;netstandard2.0;netstandard2.1;netcoreapp3.1;netstandard2.0;</TargetFrameworks>
+    <Description>Easier .NET Client for Apache Kafka based on Confluent's Client</Description>
+    <Copyright>Copyright 2020 Mahdi Nami Damirchi</Copyright>
+    <PackageProjectUrl>https://github.com/damirci/sharpkafka</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/damirci/sharpkafka</RepositoryUrl>
+    <PackageReleaseNotes>https://github.com/damirci/sharpkafka/releases</PackageReleaseNotes>
+    <PackageTags>Kafka;Confluent;librdkafka;SharpKafka</PackageTags>
+    <Authors>Mahdi Nami Damrichi</Authors>
+    <Company />
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <ItemGroup>

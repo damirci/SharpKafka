@@ -1,6 +1,7 @@
 ﻿using Confluent.Kafka;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SharpKafka.Extentions;
 using SharpKafka.Message;
 using SharpKafka.Producer;
 using System;
@@ -56,7 +57,7 @@ namespace SharpKafka.Workers
             return Task.CompletedTask;
         }
 
-        public void StartConsumerLoop(CancellationToken cancellationToken)
+        private void StartConsumerLoop(CancellationToken cancellationToken)
         {
             _consumer.Subscribe(_topic);
 
@@ -72,8 +73,44 @@ namespace SharpKafka.Workers
                         continue;
                     }
                     var message = consumeResult.Message;
-                    _ = _messageHandler.Handle(message);
 
+                    var isHandled = false;
+                    var retryCounter = message.Headers.GetRetryCounter();
+
+                    if (retryCounter <= 0)//first try
+                    {
+                        isHandled = _messageHandler.Handle(message);
+                    }
+                    else
+                    {
+                        var waitUntil = message.Timestamp.UtcDateTime.AddMilliseconds(_retryWait);
+                        if (waitUntil <= DateTimeOffset.UtcNow)
+                        {
+                            isHandled = _messageHandler.Handle(message);
+                        }
+                        else
+                        {
+                            _producer.Produce(_retryTopic, message);
+                            continue;
+                        }
+                    }
+
+                    if (isHandled)
+                    {
+                        continue;
+                    }
+
+                    var failedMessage = new Message<TKey, TValue> { Key = message.Key, Headers = message.Headers, Value = message.Value };
+
+                    if (retryCounter + 1 < _maxRetry)
+                    {
+                        failedMessage.Headers.SetRetryCounter(retryCounter + 1);
+                        _producer.Produce(_retryTopic, failedMessage);
+                    }
+                    else
+                    {
+                        _producer.Produce(_dlqTopic, failedMessage);
+                    }
                 }
                 catch (OperationCanceledException)
                 {

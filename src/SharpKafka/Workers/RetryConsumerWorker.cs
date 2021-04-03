@@ -33,7 +33,7 @@ namespace SharpKafka.Workers
             _retryWait = retry.Wait;
 
             _dlqTopic = $"{Topic}__{option.Consumer.GroupId}__{retry.DlqPostfix}";
-            _retryTopic = $"{Topic}__{option.Consumer.GroupId}__{retry.TopicPostfix}";
+            _retryTopic = $"{Topic}__{option.Consumer.GroupId}__{retry.RetryPostfix}";
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -87,7 +87,7 @@ namespace SharpKafka.Workers
 
                     var failedMessage = new Message<TKey, TValue> { Key = message.Key, Headers = message.Headers, Value = message.Value };
 
-                    if (retryCounter + 1 < _maxRetry)
+                    if (retryCounter + 1 <= _maxRetry)
                     {
                         failedMessage.Headers.SetRetryCounter(retryCounter + 1);
                         _producer.Produce(_retryTopic, failedMessage);

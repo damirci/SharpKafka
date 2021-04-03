@@ -7,8 +7,11 @@ namespace SharpKafka.Message
               Inherited = true)]
     public class RetryAttribute : Attribute
     {
-        public long Wait { get; set; } = 0;
-        public int MaxRetry { get; set; } = 0;
+        /// <summary>
+        /// waiting time between each try
+        /// </summary>
+        public long Wait { get; set; } = 1000;
+        public int MaxRetry { get; set; } = 1;
         /// <summary>
         /// sample topic name: topic-name__consumer-group__postfix
         /// </summary>

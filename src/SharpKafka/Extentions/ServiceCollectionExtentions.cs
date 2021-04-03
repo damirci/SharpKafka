@@ -1,6 +1,7 @@
 ﻿using Confluent.Kafka;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using SharpKafka.Message;
 using SharpKafka.Producer;
 using SharpKafka.Workers;
@@ -61,20 +62,52 @@ namespace SharpKafka.Extentions
 
                 foreach (var messageHandlerType in messageHandlerTypes)
                 {
-                    var iMessageHandlerType = messageHandlerType.ImplementedInterfaces.First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IMessageHandler<,>));
-                    services.AddTransient(iMessageHandlerType, messageHandlerType);
+                    var iMessageHandlerType = messageHandlerType
+                        .ImplementedInterfaces
+                        .First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IMessageHandler<,>));
 
-                    var retry = messageHandlerType.GetCustomAttribute<RetryAttribute>();
-
-                    var consumerWorkerType = retry == null
-                        ? typeof(ConsumerWorker<,>).MakeGenericType(iMessageHandlerType.GetGenericArguments())
-                        : typeof(RetryConsumerWorker<,>).MakeGenericType(iMessageHandlerType.GetGenericArguments());
-
-                    services.AddTransient(typeof(IHostedService), consumerWorkerType);
+                    services.AddTransient(messageHandlerType);
+                    services.AddTransient(typeof(IHostedService), sp => ConsumerWorkerFactory(sp, messageHandlerType));
                 }
             }
 
             return services;
+        }
+
+        private static object ConsumerWorkerFactory(IServiceProvider serviceProvider, TypeInfo messageHandlerType)
+        {
+            var iMessageHandlerType = messageHandlerType
+                .ImplementedInterfaces.First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IMessageHandler<,>));
+            var retry = messageHandlerType.GetCustomAttribute<RetryAttribute>();
+            var genericTypes = iMessageHandlerType.GetGenericArguments();
+
+            var config = serviceProvider.GetService<KafkaConfig>();
+            var messageHandler = serviceProvider.GetService(messageHandlerType);
+            var keyDeserializer = serviceProvider.GetService(typeof(IDeserializer<>).MakeGenericType(genericTypes[0]));
+            var valueDeserializer = serviceProvider.GetService(typeof(IDeserializer<>).MakeGenericType(genericTypes[1]));
+
+            if (retry == null)
+            {
+                var consumerWorkerType = typeof(ConsumerWorker<,>)
+                .MakeGenericType(iMessageHandlerType.GetGenericArguments());
+                var loggerType = typeof(ILogger<>).MakeGenericType(consumerWorkerType);
+                var logger = serviceProvider.GetService(loggerType);
+
+                return Activator.CreateInstance(consumerWorkerType, new object[] {
+                    config, logger, messageHandler, keyDeserializer, valueDeserializer
+                });
+            }
+            else
+            {
+                var producer = serviceProvider.GetService(typeof(IKafkaDependentProducer<,>).MakeGenericType(genericTypes));
+                var consumerWorkerType = typeof(RetryConsumerWorker<,>)
+                .MakeGenericType(iMessageHandlerType.GetGenericArguments());
+                var loggerType = typeof(ILogger<>).MakeGenericType(consumerWorkerType);
+                var logger = serviceProvider.GetService(loggerType);
+                return Activator.CreateInstance(consumerWorkerType, new object[] {
+                    config, logger, messageHandler, keyDeserializer, valueDeserializer, producer
+                });
+            }
         }
     }
 }

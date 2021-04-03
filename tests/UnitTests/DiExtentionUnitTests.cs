@@ -42,8 +42,6 @@ namespace UnitTests
         {
             services.AddTransient((sp) => new JsonDeserializer<TestMessage>().AsSyncOverAsync());
             services.AddTransient((sp) => new JsonSerializer<TestMessage>(schemaRegistry).AsSyncOverAsync());
-            services.AddTransient((sp) => new JsonDeserializer<DummyMessage>().AsSyncOverAsync());
-            services.AddTransient((sp) => new JsonSerializer<DummyMessage>(schemaRegistry).AsSyncOverAsync());
             services.AddLogging();
         }
 
@@ -69,7 +67,7 @@ namespace UnitTests
             //act
             services.AddSharpKafka(kafkaConfig, typeof(DiExtentionUnitTests));
             var provider = services.BuildServiceProvider();
-            var messageHandler = provider.GetRequiredService<IMessageHandler<Null, string>>();
+            var messageHandler = provider.GetRequiredService<StringMessageHandler>();
 
             //assert
             Assert.NotNull(messageHandler);
@@ -114,7 +112,7 @@ namespace UnitTests
             services.AddLogging();
 
 
-            var expected = typeof(RetryConsumerWorker<Null, DummyMessage>);
+            var expected = typeof(RetryConsumerWorker<Null, string>);
             //act
             services.AddSharpKafka(kafkaConfig, typeof(DiExtentionUnitTests));
             var provider = services.BuildServiceProvider();

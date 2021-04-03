@@ -59,9 +59,10 @@ namespace UnitTests
             services.AddTransient((sp) => new JsonDeserializer<TestMessage>().AsSyncOverAsync());
             services.AddLogging();
             var expected = typeof(ConsumerWorker<Null, string>);
+            var kafkaConfig = new KafkaConfig { Consumer = new ConsumerConfig() { BootstrapServers = "localhost", GroupId = "test" } };
 
             //act
-            services.AddSharpKafka(new KafkaConfig { Consumer = new ConsumerConfig() { BootstrapServers = "localhost", GroupId = "test" } }, typeof(DiExtentionUnitTests));
+            services.AddSharpKafka(kafkaConfig, typeof(DiExtentionUnitTests));
             var provider = services.BuildServiceProvider();
             var hostedServices = provider.GetServices<IHostedService>();
 
@@ -78,9 +79,10 @@ namespace UnitTests
             services.AddTransient((sp) => new JsonDeserializer<TestMessage>().AsSyncOverAsync());
             services.AddLogging();
             var expected = typeof(ConsumerWorker<string, TestMessage>);
+            var kafkaConfig = new KafkaConfig { Consumer = new ConsumerConfig() { BootstrapServers = "localhost", GroupId = "test" } };
 
             //act
-            services.AddSharpKafka(new KafkaConfig { Consumer = new ConsumerConfig() { BootstrapServers = "localhost", GroupId = "test" } }, typeof(DiExtentionUnitTests));
+            services.AddSharpKafka(kafkaConfig, typeof(DiExtentionUnitTests));
             var provider = services.BuildServiceProvider();
             var hostedServices = provider.GetServices<IHostedService>();
 
@@ -88,5 +90,34 @@ namespace UnitTests
             Assert.NotEmpty(hostedServices);
             Assert.Contains(hostedServices, t => t.GetType() == expected);
         }
+
+        [Fact]
+        public void Should_Inject_Retry_Consumer_Worker_for_MessageHandler()
+        {
+            //arrange
+            var services = new ServiceCollection();
+            services.AddTransient((sp) => new JsonDeserializer<TestMessage>().AsSyncOverAsync());
+            var schemaRegistry = new CachedSchemaRegistryClient(new SchemaRegistryConfig
+            {
+                Url = "localhost"
+            });
+            services.AddTransient((sp) => new JsonSerializer<TestMessage>(schemaRegistry).AsSyncOverAsync());
+            services.AddLogging();
+            var expected = typeof(RetryConsumerWorker<Null, string>);
+            var kafkaConfig = new KafkaConfig { 
+                Consumer = new ConsumerConfig() { BootstrapServers = "localhost", GroupId = "test" },
+                Producer = new ProducerConfig() { BootstrapServers = "localhost" }
+            };
+
+            //act
+            services.AddSharpKafka(kafkaConfig, typeof(DiExtentionUnitTests));
+            var provider = services.BuildServiceProvider();
+            var hostedServices = provider.GetServices<IHostedService>();
+
+            //assert
+            Assert.NotEmpty(hostedServices);
+            Assert.Contains(hostedServices, t => t.GetType() == expected);
+        }
+
     }
 }

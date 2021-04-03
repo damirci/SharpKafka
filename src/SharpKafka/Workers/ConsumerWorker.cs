@@ -1,31 +1,70 @@
-﻿using Microsoft.Extensions.Hosting;
-using SharpKafka.Consumer;
+﻿using Confluent.Kafka;
+using Microsoft.Extensions.Logging;
 using SharpKafka.Message;
-using System.Reflection;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace SharpKafka.Workers
 {
-    public class ConsumerWorker<TKey, TValue> : BackgroundService, IConsumerWorker<TKey, TValue>
+    public class ConsumerWorker<TKey, TValue> : ConsumerWorkerBase<TKey, TValue>, IConsumerWorker<TKey, TValue>
     {
-        private readonly IKafkaConsumer<TKey, TValue> _consumer;
-
-        public ConsumerWorker(IKafkaConsumer<TKey, TValue> consumer)
+        public ConsumerWorker(KafkaConfig option,
+            ILogger<ConsumerWorker<TKey, TValue>> logger,
+            IMessageHandler<TKey, TValue> messageHandler,
+            IDeserializer<TKey> keyDersializer,
+            IDeserializer<TValue> valueDersializer) :base(option,logger,messageHandler,keyDersializer,valueDersializer)
         {
-            _consumer = consumer;
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            new Thread(() => _consumer.StartConsumerLoop(stoppingToken)).Start();
+            new Thread(() => StartConsumerLoop(stoppingToken)).Start();
             return Task.CompletedTask;
         }
 
-        public override void Dispose()
+        public void StartConsumerLoop(CancellationToken cancellationToken)
         {
-            _consumer.Dispose();
-            base.Dispose();
+            Consumer.Subscribe(Topic);
+
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                try
+                {
+                    var consumeResult = Consumer.Consume(cancellationToken);
+
+                    // Handle message...
+                    if (consumeResult == null || consumeResult.Message == null)
+                    {
+                        continue;
+                    }
+                    var message = consumeResult.Message;
+                    _ = MessageHandler.Handle(message);
+
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch (ConsumeException e)
+                {
+                    // Consumer errors should generally be ignored (or logged) unless fatal.
+                    Logger.LogError($"Consume error: {e.Error.Reason}");
+
+                    if (e.Error.IsFatal)
+                    {
+                        // https://github.com/edenhill/librdkafka/blob/master/INTRODUCTION.md#fatal-consumer-errors
+                        break;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Logger.LogError($"Unexpected error: {e}");
+                    break;
+                }
+            }
         }
+
+
     }
 }

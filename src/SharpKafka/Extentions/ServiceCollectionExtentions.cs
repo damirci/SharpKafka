@@ -1,7 +1,6 @@
 ﻿using Confluent.Kafka;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using SharpKafka.Consumer;
 using SharpKafka.Message;
 using SharpKafka.Producer;
 using SharpKafka.Workers;
@@ -42,7 +41,6 @@ namespace SharpKafka.Extentions
             services.AddSingleton(config);
             services.AddSingleton<ProducerClientHandler>();
             services.AddSingleton(typeof(IKafkaDependentProducer<,>), typeof(KafkaDependentProducer<,>));
-            services.AddTransient(typeof(IKafkaConsumer<,>), typeof(KafkaConsumer<,>));
 
             var assembliesToScanArray = assembliesToScan as Assembly[] ?? assembliesToScan?.ToArray();
 
@@ -66,9 +64,13 @@ namespace SharpKafka.Extentions
                     var iMessageHandlerType = messageHandlerType.ImplementedInterfaces.First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IMessageHandler<,>));
                     services.AddTransient(iMessageHandlerType, messageHandlerType);
 
-                    var consumerWorkerType = typeof(ConsumerWorker<,>).MakeGenericType(iMessageHandlerType.GetGenericArguments());
+                    var retry = messageHandlerType.GetCustomAttribute<RetryAttribute>();
 
-                    services.AddTransient(typeof(IHostedService),consumerWorkerType);
+                    var consumerWorkerType = retry == null
+                        ? typeof(ConsumerWorker<,>).MakeGenericType(iMessageHandlerType.GetGenericArguments())
+                        : typeof(RetryConsumerWorker<,>).MakeGenericType(iMessageHandlerType.GetGenericArguments());
+
+                    services.AddTransient(typeof(IHostedService), consumerWorkerType);
                 }
             }
 

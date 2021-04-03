@@ -5,6 +5,7 @@ using SharpKafka.Message;
 namespace WorkerService.Messages
 {
     [Topic("dummy-message-topic")]
+    [Retry]//if you need to retry the failed message hanling
     public class DummyMessageHandler : IMessageHandler<Null, DummyMessage>
     {
         private readonly ILogger<DummyMessageHandler> _logger;

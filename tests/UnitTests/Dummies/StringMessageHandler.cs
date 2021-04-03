@@ -1,5 +1,4 @@
 ﻿using Confluent.Kafka;
-using SharpKafka;
 using SharpKafka.Message;
 using System;
 

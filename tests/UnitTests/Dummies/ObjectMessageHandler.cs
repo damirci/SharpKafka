@@ -1,5 +1,4 @@
 ﻿using Confluent.Kafka;
-using SharpKafka;
 using SharpKafka.Message;
 
 namespace UnitTests.Dummies
@@ -7,7 +6,7 @@ namespace UnitTests.Dummies
     [Topic("test")]
     class ObjectMessageHandler : IMessageHandler<string, TestMessage>
     {
-        bool IMessageHandler<string, TestMessage>.Handle(Message<string, TestMessage> message)
+        public bool Handle(Message<string, TestMessage> message)
         {
             throw new System.NotImplementedException();
         }

@@ -16,6 +16,9 @@ namespace UnitTests
 {
     public class DiExtentionUnitTests
     {
+        const string _KafkaAddress = "localhost";
+        const string _groupId = "test-cg";
+
         [Fact]
         public void Should_Inject_producer_for_Message()
         {
@@ -23,12 +26,19 @@ namespace UnitTests
             var services = new ServiceCollection();
             var schemaRegistry = new CachedSchemaRegistryClient(new SchemaRegistryConfig
             {
-                Url = "localhost"
+                Url = _KafkaAddress
             });
             services.AddTransient((sp) => new JsonSerializer<TestMessage>(schemaRegistry).AsSyncOverAsync());
-            
+
             //act
-            services.AddSharpKafka(new KafkaConfig { Producer = new ProducerConfig() { BootstrapServers = "localhost" } }, typeof(DiExtentionUnitTests));
+            services.AddSharpKafka(new KafkaConfig
+            {
+                Producer = new ProducerConfig()
+                {
+                    BootstrapServers = _KafkaAddress
+                }
+            },
+                typeof(DiExtentionUnitTests));
             var provider = services.BuildServiceProvider();
             var producer = provider.GetRequiredService<IKafkaDependentProducer<Null, TestMessage>>();
 
@@ -59,7 +69,14 @@ namespace UnitTests
             services.AddTransient((sp) => new JsonDeserializer<TestMessage>().AsSyncOverAsync());
             services.AddLogging();
             var expected = typeof(ConsumerWorker<Null, string>);
-            var kafkaConfig = new KafkaConfig { Consumer = new ConsumerConfig() { BootstrapServers = "localhost", GroupId = "test" } };
+            var kafkaConfig = new KafkaConfig
+            {
+                Consumer = new ConsumerConfig()
+                {
+                    BootstrapServers = _KafkaAddress,
+                    GroupId = _groupId
+                }
+            };
 
             //act
             services.AddSharpKafka(kafkaConfig, typeof(DiExtentionUnitTests));
@@ -79,7 +96,14 @@ namespace UnitTests
             services.AddTransient((sp) => new JsonDeserializer<TestMessage>().AsSyncOverAsync());
             services.AddLogging();
             var expected = typeof(ConsumerWorker<string, TestMessage>);
-            var kafkaConfig = new KafkaConfig { Consumer = new ConsumerConfig() { BootstrapServers = "localhost", GroupId = "test" } };
+            var kafkaConfig = new KafkaConfig
+            {
+                Consumer = new ConsumerConfig()
+                {
+                    BootstrapServers = _KafkaAddress,
+                    GroupId = _groupId
+                }
+            };
 
             //act
             services.AddSharpKafka(kafkaConfig, typeof(DiExtentionUnitTests));
@@ -99,14 +123,22 @@ namespace UnitTests
             services.AddTransient((sp) => new JsonDeserializer<TestMessage>().AsSyncOverAsync());
             var schemaRegistry = new CachedSchemaRegistryClient(new SchemaRegistryConfig
             {
-                Url = "localhost"
+                Url = _KafkaAddress
             });
             services.AddTransient((sp) => new JsonSerializer<TestMessage>(schemaRegistry).AsSyncOverAsync());
             services.AddLogging();
             var expected = typeof(RetryConsumerWorker<Null, string>);
-            var kafkaConfig = new KafkaConfig { 
-                Consumer = new ConsumerConfig() { BootstrapServers = "localhost", GroupId = "test" },
-                Producer = new ProducerConfig() { BootstrapServers = "localhost" }
+            var kafkaConfig = new KafkaConfig
+            {
+                Consumer = new ConsumerConfig()
+                {
+                    BootstrapServers = _KafkaAddress,
+                    GroupId = _groupId
+                },
+                Producer = new ProducerConfig()
+                {
+                    BootstrapServers = _KafkaAddress
+                }
             };
 
             //act

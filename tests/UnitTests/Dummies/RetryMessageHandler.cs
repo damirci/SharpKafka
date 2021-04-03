@@ -5,9 +5,10 @@ using System;
 namespace UnitTests.Dummies
 {
     [Topic("test")]
-    public class StringMessageHandler : IMessageHandler<Null, string>
+    [Retry]
+    public class RetryMessageHandler : IMessageHandler<Null, DummyMessage>
     {
-        public bool Handle(Message<Null, string> message)
+        public bool Handle(Message<Null, DummyMessage> message)
         {
             throw new NotImplementedException();
         }

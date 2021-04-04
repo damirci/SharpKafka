@@ -7,15 +7,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{71EFF3D3-631
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{64135100-B7CD-43EF-BA3D-123995805176}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{A538138A-8E2B-417C-8637-1C4CF42733C2}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{A538138A-8E2B-417C-8637-1C4CF42733C2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharpKafka", "src\SharpKafka\SharpKafka.csproj", "{D9E8362D-DF9F-4077-B71F-04B2B8A1FD3A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "tests\UnitTests\UnitTests.csproj", "{F2DB89FE-64A8-4447-A4DA-3D6343506A30}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Web", "samples\Web\Web.csproj", "{83C23FEA-2E71-41F5-B464-FD19D32949E0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Web", "examples\Web\Web.csproj", "{83C23FEA-2E71-41F5-B464-FD19D32949E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkerService", "samples\WorkerService\WorkerService.csproj", "{0FDC51DB-66DE-4931-BDC7-29FB48DDFEC5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkerService", "examples\WorkerService\WorkerService.csproj", "{0FDC51DB-66DE-4931-BDC7-29FB48DDFEC5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

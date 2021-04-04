@@ -22,10 +22,10 @@ namespace SharpKafka.Producer
             _topic = topic?.Name;
         }
 
-        public Task ProduceAsync(string topic, Message<TKey, TValue> message)
+        public Task<DeliveryResult<TKey, TValue>> ProduceAsync(string topic, Message<TKey, TValue> message)
             => handler.ProduceAsync(topic, message);
 
-        public Task ProduceAsync(TKey key, TValue value)
+        public Task<DeliveryResult<TKey, TValue>> ProduceAsync(TKey key, TValue value)
         {
             if (_topic == null)
             {

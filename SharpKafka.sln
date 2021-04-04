@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkerService", "examples\W
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleProducerWorker", "examples\SimpleProducerWorker\SimpleProducerWorker.csproj", "{48EDEEAD-A394-4152-993E-100625252C55}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleConsumerWorker", "examples\SimpleConsumerWorker\SimpleConsumerWorker.csproj", "{E7A6965D-D074-45AA-986C-81B0C0A71F15}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleConsumerWorker", "examples\SimpleConsumerWorker\SimpleConsumerWorker.csproj", "{E7A6965D-D074-45AA-986C-81B0C0A71F15}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

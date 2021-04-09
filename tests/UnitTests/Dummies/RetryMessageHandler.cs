@@ -5,12 +5,12 @@ using System;
 namespace UnitTests.Dummies
 {
     [Topic("test")]
-    [Retry]
+    [Retry(MaxRetry =5)]
     public class RetryMessageHandler : IMessageHandler<Null, string>
     {
-        public bool Handle(Message<Null, string> message)
+        public virtual bool Handle(Message<Null, string> message)
         {
-            throw new NotImplementedException();
+            return false;
         }
     }
 }

@@ -44,6 +44,7 @@ namespace SharpKafka.Workers
         private void StartConsumerLoop(CancellationToken cancellationToken)
         {
             Consumer.Subscribe(Topic);
+            Consumer.Subscribe(_retryTopic);
 
             while (!cancellationToken.IsCancellationRequested)
             {

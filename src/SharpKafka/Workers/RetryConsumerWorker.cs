@@ -22,9 +22,8 @@ namespace SharpKafka.Workers
         public RetryConsumerWorker(KafkaConfig option,
             ILogger<RetryConsumerWorker<TKey, TValue>> logger,
             IMessageHandler<TKey, TValue> messageHandler,
-            IDeserializer<TKey> keyDersializer,
-            IDeserializer<TValue> valueDersializer,
-            IKafkaDependentProducer<TKey, TValue> producer) : base(option, logger, messageHandler, keyDersializer, valueDersializer)
+            IDependentConsumer<TKey, TValue> consumer,
+            IKafkaDependentProducer<TKey, TValue> producer) : base(option, logger, messageHandler, consumer)
         {
             _producer = producer;
             var retry = MessageHandler.GetType().GetCustomAttribute<RetryAttribute>();

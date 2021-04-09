@@ -15,14 +15,10 @@ namespace SharpKafka.Workers
         public ConsumerWorkerBase(KafkaConfig option,
         ILogger<IConsumerWorker<TKey, TValue>> logger,
         IMessageHandler<TKey, TValue> messageHandler,
-        IDeserializer<TKey> keyDersializer,
-        IDeserializer<TValue> valueDersializer)
+        IDependentConsumer<TKey, TValue> dependentConsumer)
         {
             Config = option.Consumer;
-            Consumer = new ConsumerBuilder<TKey, TValue>(Config)
-                .SetKeyDeserializer(keyDersializer)
-                .SetValueDeserializer(valueDersializer)
-                .Build();
+            Consumer = dependentConsumer.Consumer;
             MessageHandler = messageHandler;
             var topic = messageHandler.GetType().GetCustomAttribute<TopicAttribute>();
             Topic = topic.Name;

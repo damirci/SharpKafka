@@ -42,6 +42,7 @@ namespace SharpKafka.Extentions
             services.AddSingleton(config);
             services.AddSingleton<ProducerClientHandler>();
             services.AddSingleton(typeof(IKafkaDependentProducer<,>), typeof(KafkaDependentProducer<,>));
+            services.AddSingleton(typeof(IDependentConsumer<,>), typeof(DependentConsumer<,>));
 
             var assembliesToScanArray = assembliesToScan as Assembly[] ?? assembliesToScan?.ToArray();
 
@@ -83,29 +84,28 @@ namespace SharpKafka.Extentions
 
             var config = serviceProvider.GetService<KafkaConfig>();
             var messageHandler = serviceProvider.GetService(messageHandlerType);
-            var keyDeserializer = serviceProvider.GetService(typeof(IDeserializer<>).MakeGenericType(genericTypes[0]));
-            var valueDeserializer = serviceProvider.GetService(typeof(IDeserializer<>).MakeGenericType(genericTypes[1]));
+            var consumer = serviceProvider.GetService(typeof(IDependentConsumer<,>).MakeGenericType(genericTypes));
 
             if (retry == null)
             {
                 var consumerWorkerType = typeof(ConsumerWorker<,>)
-                .MakeGenericType(iMessageHandlerType.GetGenericArguments());
+                .MakeGenericType(genericTypes);
                 var loggerType = typeof(ILogger<>).MakeGenericType(consumerWorkerType);
                 var logger = serviceProvider.GetService(loggerType);
 
                 return Activator.CreateInstance(consumerWorkerType, new object[] {
-                    config, logger, messageHandler, keyDeserializer, valueDeserializer
+                    config, logger, messageHandler, consumer
                 });
             }
             else
             {
                 var producer = serviceProvider.GetService(typeof(IKafkaDependentProducer<,>).MakeGenericType(genericTypes));
                 var consumerWorkerType = typeof(RetryConsumerWorker<,>)
-                .MakeGenericType(iMessageHandlerType.GetGenericArguments());
+                .MakeGenericType(genericTypes);
                 var loggerType = typeof(ILogger<>).MakeGenericType(consumerWorkerType);
                 var logger = serviceProvider.GetService(loggerType);
                 return Activator.CreateInstance(consumerWorkerType, new object[] {
-                    config, logger, messageHandler, keyDeserializer, valueDeserializer, producer
+                    config, logger, messageHandler, consumer, producer
                 });
             }
         }

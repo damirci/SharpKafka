@@ -12,8 +12,7 @@ namespace SharpKafka.Workers
         public ConsumerWorker(KafkaConfig option,
             ILogger<ConsumerWorker<TKey, TValue>> logger,
             IMessageHandler<TKey, TValue> messageHandler,
-            IDeserializer<TKey> keyDersializer,
-            IDeserializer<TValue> valueDersializer) :base(option,logger,messageHandler,keyDersializer,valueDersializer)
+            IDependentConsumer<TKey, TValue> consumer) : base(option, logger, messageHandler, consumer)
         {
         }
 

@@ -38,10 +38,7 @@ namespace SharpKafka.Workers.Tests
                 });
 
             consumerMock
-                .Setup(c => c.Subscribe(It.IsAny<string>()));
-
-            var topic = $"test";
-            var retryTopic = $"{topic}__{option.Consumer.GroupId}__{new RetryAttribute().RetryPostfix}";
+                .Setup(c => c.Subscribe(It.IsAny<string[]>()));
 
             var dependentConsumerMock = new Mock<IDependentConsumer<Null, string>>();
             dependentConsumerMock
@@ -59,8 +56,7 @@ namespace SharpKafka.Workers.Tests
             retryWorker.StartAsync(cancelationSource.Token);
 
             //arrange
-            consumerMock.Verify(h => h.Subscribe(retryTopic), Times.Once);
-            consumerMock.Verify(h => h.Subscribe(topic), Times.Once);
+            consumerMock.Verify(h => h.Subscribe(It.IsAny<string[]>()), Times.Once);
         }
 
         [Fact()]

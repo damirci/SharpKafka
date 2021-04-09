@@ -5,7 +5,7 @@ using SharpKafka.Message;
 namespace WorkerService.Messages
 {
     [Topic("dummy-message-topic")]
-    [Retry]//if you need to retry the failed message hanling
+    [Retry(MaxRetry =2)]//if you need to retry the failed message hanling
     public class DummyMessageHandler : IMessageHandler<Null, DummyMessage>
     {
         private readonly ILogger<DummyMessageHandler> _logger;
@@ -18,7 +18,7 @@ namespace WorkerService.Messages
         public bool Handle(Message<Null, DummyMessage> message)
         {
             _logger.LogInformation($"a dummy messages handled: {message.Value.Content}");
-            return true;
+            return false;
         }
     }
 }
